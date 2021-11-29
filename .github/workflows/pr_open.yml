@@ -1,0 +1,31 @@
+name: Pull Request open comment
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  comment_to_pr:
+    name: Comment to PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: comment
+        uses: actions/github-script@v5
+        env:
+          MESSAGE: |
+            リリースの規模に合わせて以下のコメントを書き込んでください（何も入力しない場合はパッチアップデート扱いになります）
+
+            | 規模 | コメント | 補足 |
+            | --- | --- | --- |
+            | メジャーアップデート | `/release major` | 既存のAPIやモデルに破壊的変更がある場合 |
+            | マイナーアップデート | `/release minor` | 新機能の追加など既存の機能には影響がない場合 |
+            | パッチアップデート | `/release patch` | バグ修正 |
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: process.env.MESSAGE
+            })
